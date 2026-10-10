@@ -1,0 +1,28 @@
+# Build context is the repository root (deploy/docker/*.Dockerfile). Keep it small and secret-free.
+.git
+.github
+.gitlab
+.gitlab-ci.yml
+.husky
+.claude
+docs
+tools
+**/node_modules
+**/dist
+**/coverage
+**/reports
+**/.npm
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.uv-cache
+**/*.log
+**/.DS_Store
+.deploy
+*.dump
+# Secrets: never baked into an image
+**/.env
+**/.env.*
+!**/.env.example

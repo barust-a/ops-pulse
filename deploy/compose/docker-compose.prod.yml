@@ -1,0 +1,82 @@
+# Production / staging override, layered on docker-compose.yml:
+#   docker compose -f deploy/compose/docker-compose.yml -f deploy/compose/docker-compose.prod.yml …
+# deploy/scripts/deploy.sh and deploy/systemd/*.service always pass both files.
+#
+# - images come from the GitLab registry (OPS_PULSE_IMAGE_PREFIX=$CI_REGISTRY_IMAGE), never built
+# - no database port on the host, no demo seed
+# - restart policies, resource limits, read-only root filesystems, no privilege escalation
+# - json-file logs with rotation (journald/rsyslog forwarding is configured on the host)
+# Requires Docker Compose ≥ 2.24 for `!reset`.
+
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  postgres:
+    ports: !reset []
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 256m
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+
+  migrate:
+    build: !reset null
+    <<: *hardening
+    environment:
+      SEED_DEMO_DATA: "false"
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256m
+
+  api:
+    build: !reset null
+    <<: *hardening
+    restart: unless-stopped
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
+
+  kpi-job:
+    build: !reset null
+    <<: *hardening
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+
+  web:
+    build: !reset null
+    <<: *hardening
+    restart: unless-stopped
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128m

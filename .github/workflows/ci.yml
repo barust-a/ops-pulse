@@ -1,0 +1,108 @@
+# Mirror of the gate jobs of .gitlab-ci.yml (lint + test) for the GitHub copy of the repository.
+# Packaging and deployment live in GitLab only.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agent-harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test "tools/agent-harness/*.test.mjs"
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run hygiene
+      - run: npm test
+      - run: npm run build
+
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ops_pulse_test
+          POSTGRES_USER: ops_pulse
+          # CI-only throwaway password: the service container lives for this job only.
+          POSTGRES_PASSWORD: ci-only-throwaway
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ops_pulse -d ops_pulse_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgres://ops_pulse:ci-only-throwaway@localhost:5432/ops_pulse_test
+      MIGRATIONS_DIR: ${{ github.workspace }}/db/migrations
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/api/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run hygiene
+      - run: npm test
+      - run: npm run test:integration
+      - run: npm run build
+
+  dataiku:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dataiku
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: dataiku/uv.lock
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest
+
+  deploy-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck -x deploy/scripts/*.sh && shellcheck --shell=sh .husky/pre-commit
+      - run: |
+          docker compose -f deploy/compose/docker-compose.yml --env-file deploy/compose/.env.example config --quiet
+          docker compose -f deploy/compose/docker-compose.yml -f deploy/compose/docker-compose.prod.yml \
+            --env-file deploy/compose/.env.example config --quiet

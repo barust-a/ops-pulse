@@ -1,0 +1,34 @@
+# Ops Pulse stack (Docker Compose) as a systemd service on RHEL 9.
+# Install: docs/ops/installation.md (copy to /etc/systemd/system/, then
+#   systemctl daemon-reload && systemctl enable --now ops-pulse.service).
+#
+# systemd owns boot order and start/stop; Docker's `restart: unless-stopped` (compose prod
+# override) restarts a crashed container. Releases are deployed with deploy/scripts/deploy.sh,
+# which records the running image tag in /opt/ops-pulse/.deploy/release.env, read below.
+
+[Unit]
+Description=Ops Pulse operations-supervision stack (Docker Compose)
+Documentation=file:///opt/ops-pulse/docs/ops/operations.md
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/ops-pulse/deploy/compose
+EnvironmentFile=-/opt/ops-pulse/.deploy/release.env
+ExecStartPre=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
+ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --wait --wait-timeout 180 --remove-orphans postgres api web
+ExecReload=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --wait --wait-timeout 180 postgres api web
+ExecStop=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml stop --timeout 30
+TimeoutStartSec=300
+TimeoutStopSec=120
+# A failed start (registry or disk not ready at boot) is retried; systemd ≥ 244 allows it on oneshot.
+Restart=on-failure
+RestartSec=30s
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

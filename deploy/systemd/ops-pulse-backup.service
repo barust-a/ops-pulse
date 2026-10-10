@@ -1,0 +1,15 @@
+# Ops Pulse nightly database backup (pg_dump custom format, 14-day retention).
+# Started by ops-pulse-backup.timer; run by hand with: systemctl start ops-pulse-backup.service
+
+[Unit]
+Description=Ops Pulse database backup
+Requires=docker.service
+After=docker.service ops-pulse.service
+Requisite=ops-pulse.service
+
+[Service]
+Type=oneshot
+Environment=BACKUP_DIR=/var/backups/ops-pulse
+Environment=RETENTION_DAYS=14
+ExecStart=/opt/ops-pulse/deploy/scripts/backup-db.sh
+SyslogIdentifier=ops-pulse-backup

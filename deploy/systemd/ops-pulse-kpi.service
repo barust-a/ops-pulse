@@ -1,0 +1,20 @@
+# Ops Pulse daily KPI job: runs the Dataiku flow through its local runner (kpi-job image) and
+# rewrites ops.daily_service_kpis. Started by ops-pulse-kpi.timer; it mirrors the Dataiku
+# scenario on hosts without DSS. Run it by hand with: systemctl start ops-pulse-kpi.service
+
+[Unit]
+Description=Ops Pulse daily service KPIs (Dataiku flow runner)
+Documentation=file:///opt/ops-pulse/docs/ops/operations.md
+Requires=docker.service
+After=docker.service ops-pulse.service
+# The flow reads the database the stack runs; no point starting without it.
+Requisite=ops-pulse.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ops-pulse/deploy/compose
+EnvironmentFile=-/opt/ops-pulse/.deploy/release.env
+ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --no-deps kpi-job
+TimeoutStartSec=1800
+# Output goes to the journal: journalctl -u ops-pulse-kpi.service
+SyslogIdentifier=ops-pulse-kpi

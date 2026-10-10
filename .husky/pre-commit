@@ -1,0 +1,28 @@
+#!/bin/sh
+# Gate every commit (POSIX sh, run from the repository root by git):
+#   1. the agent instruction files and guard hooks stay valid;
+#   2. each app whose files are staged lints and typechecks (whole app: a type error can come
+#      from a file you did not touch);
+#   3. staged Dataiku Python passes ruff.
+# Wired by `npm run prepare` at the root (git config core.hooksPath .husky); no root dependency.
+set -eu
+
+node --test --test-reporter=dot "tools/agent-harness/*.test.mjs"
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+has_staged() {
+  printf '%s\n' "$staged" | grep -q "^$1/"
+}
+
+for app in apps/web apps/api; do
+  if has_staged "$app"; then
+    echo "pre-commit: $app — lint + typecheck"
+    (cd "$app" && npm run --silent lint && npm run --silent typecheck)
+  fi
+done
+
+if has_staged dataiku; then
+  echo "pre-commit: dataiku — ruff"
+  (cd dataiku && uv run ruff check . && uv run ruff format --check .)
+fi

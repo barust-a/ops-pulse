@@ -1,0 +1,15 @@
+# Runs ops-pulse-kpi.service every day at 06:00 Paris time, like the Dataiku scenario's time
+# trigger, so the dashboards show yesterday's KPIs at the start of the working day.
+# Persistent=true catches up a run missed while the host was down.
+
+[Unit]
+Description=Daily 06:00 run of the Ops Pulse KPI job
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 Europe/Paris
+Persistent=true
+AccuracySec=1min
+Unit=ops-pulse-kpi.service
+
+[Install]
+WantedBy=timers.target

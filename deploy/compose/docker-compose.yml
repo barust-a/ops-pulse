@@ -1,0 +1,123 @@
+# Ops Pulse — full stack on one host (laptop or RHEL 9 server).
+#
+#   cp deploy/compose/.env.example deploy/compose/.env      # once; fake dev values
+#   docker compose -f deploy/compose/docker-compose.yml up --build
+#   open http://localhost:8080
+#
+# Start order: postgres (healthy) → migrate (migrations + optional seed, exits 0)
+#              → api (healthy) → web;  kpi-job runs the Dataiku flow once after migrate.
+# Production adds docker-compose.prod.yml on top (deploy/scripts/deploy.sh does it).
+
+name: ops-pulse
+
+x-api-environment: &api-environment
+  NODE_ENV: production
+  PORT: "3000"
+  DATABASE_URL: postgres://${POSTGRES_USER:?set POSTGRES_USER in deploy/compose/.env}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/.env}@postgres:5432/${POSTGRES_DB:?set POSTGRES_DB in deploy/compose/.env}
+  JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (32+ chars) in deploy/compose/.env}
+  JWT_TTL_SECONDS: ${JWT_TTL_SECONDS:-3600}
+  CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  SAML_ENABLED: ${SAML_ENABLED:-false}
+  SAML_ENTRY_POINT: ${SAML_ENTRY_POINT:-}
+  SAML_ISSUER: ${SAML_ISSUER:-}
+  SAML_IDP_CERT: ${SAML_IDP_CERT:-}
+  MIGRATIONS_DIR: /opt/app-root/src/db/migrations
+
+x-api-build: &api-build
+  context: ../..
+  dockerfile: deploy/docker/api.Dockerfile
+  args:
+    APP_VERSION: ${OPS_PULSE_TAG:-local}
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # citext is created by the migrations; UTF-8 and a fixed collation keep sorting stable.
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C.UTF-8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Dev convenience (psql, DBeaver). The production override removes it.
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # One-shot: applies db/migrations, then loads the demo seed when SEED_DEMO_DATA=true.
+  migrate:
+    image: ${OPS_PULSE_IMAGE_PREFIX:-ops-pulse}/api:${OPS_PULSE_TAG:-local}
+    build: *api-build
+    environment:
+      <<: *api-environment
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
+    command:
+      - sh
+      - -c
+      - node dist/scripts/migrate.js && if [ "$$SEED_DEMO_DATA" = "true" ]; then node dist/scripts/seed.js; fi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: ${OPS_PULSE_IMAGE_PREFIX:-ops-pulse}/api:${OPS_PULSE_TAG:-local}
+    build: *api-build
+    environment: *api-environment
+    expose:
+      - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # One-shot: the Dataiku flow through its local runner (writes ops.daily_service_kpis).
+  # On a server, systemd runs it daily (deploy/systemd/ops-pulse-kpi.timer).
+  kpi-job:
+    image: ${OPS_PULSE_IMAGE_PREFIX:-ops-pulse}/kpi-job:${OPS_PULSE_TAG:-local}
+    build:
+      context: ../..
+      dockerfile: deploy/docker/kpi-job.Dockerfile
+      args:
+        APP_VERSION: ${OPS_PULSE_TAG:-local}
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  web:
+    image: ${OPS_PULSE_IMAGE_PREFIX:-ops-pulse}/web:${OPS_PULSE_TAG:-local}
+    build:
+      context: ../..
+      dockerfile: deploy/docker/web.Dockerfile
+      args:
+        APP_VERSION: ${OPS_PULSE_TAG:-local}
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
