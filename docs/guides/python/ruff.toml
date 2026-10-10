@@ -1,0 +1,49 @@
+# Ruff base config for a Python project made from ai-project-base (Ruff 0.16+). Use it in one of
+# two ways:
+# - copy it to the project root as `ruff.toml`;
+# - or keep one copy at the repository root and, in each Python project's pyproject.toml, write
+#   `[tool.ruff] extend = "<relative path>/ruff.toml"` plus only what differs.
+#
+# Merging with `extend`: a child that omits `lint.select` inherits this selection and its
+# `lint.ignore` accumulates with the one here. A child `lint.per-file-ignores` REPLACES the table
+# below, so children add theirs under `lint.extend-per-file-ignores`. Relative paths here resolve
+# against this file's directory, hence the `**/` prefix on the per-file patterns.
+#
+# A deliberate exception (a CLI that prints, a schema dumper, a crash guard that logs and re-raises)
+# is a per-file ignore in the project, with its reason in a comment, never a bare `noqa`.
+line-length = 100
+target-version = "py312"
+
+[lint]
+# List rules explicitly: Ruff 0.16 changed its default set.
+select = [
+    "E", "F", "I", "B", "UP", "SIM", "RUF", "C4", "C90", "PLR09", "PLR2004", "PLE", "PLW",
+    "RET", "PIE", "ERA", "PERF", "ARG", "FBT", "ISC", "N", "PT", "DTZ", "PTH", "S",
+    # An explicit `Any`, a blind `except`, `print`, and logging done wrong.
+    "ANN401", "BLE", "T20", "G", "LOG",
+]
+# Options are passed keyword-only: PLR0913 counts those too, PLR0917 only positional ones.
+# A project that names exceptions for what happened (`ShareMissing`, not `ShareMissingError`)
+# also ignores N818.
+ignore = ["PLR0913"]
+# Preview is on for the linter alone, and only for the rules named here: `explicit-preview-rules`
+# keeps a prefix such as "PLR09" from pulling in every other preview rule, and the formatter stays
+# on stable. PLR0914 caps the locals, PLR0916 the terms of one boolean, PLR0917 the positional
+# parameters, PLR1702 the nesting depth.
+preview = true
+explicit-preview-rules = true
+extend-select = ["PLR0914", "PLR0916", "PLR0917", "PLR1702"]
+
+[lint.per-file-ignores]
+# A test compares against the literal it expects; naming every expected value hides it. pytest
+# asserts by design.
+"**/tests/**" = ["PLR2004", "S101"]
+
+[lint.mccabe]
+max-complexity = 10
+
+[lint.pylint]
+# AGENTS.md §3: more than three positional parameters → keyword-only (after `*`) or a frozen
+# dataclass. PLR0917 defaults to five; pytest fixtures and parametrize arguments bind by name, so
+# a test function takes them keyword-only too.
+max-positional-args = 3

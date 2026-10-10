@@ -1,0 +1,16 @@
+{
+  "name": "ops-pulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ops Pulse: modernised IT operations-supervision platform (React 19, Express 5, PostgreSQL, Dataiku).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepare": "git config core.hooksPath .husky",
+    "test:harness": "node --test \"tools/agent-harness/*.test.mjs\"",
+    "stack:up": "docker compose -f deploy/compose/docker-compose.yml up --build",
+    "stack:down": "docker compose -f deploy/compose/docker-compose.yml down"
+  }
+}
