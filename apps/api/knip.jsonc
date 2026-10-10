@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  // A stale entry in an ignore list below is itself reported, and fails the run.
+  "treatConfigHintsAsErrors": true,
+  "project": ["src/**/*.ts"],
+}

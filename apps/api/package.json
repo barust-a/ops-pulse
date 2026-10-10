@@ -1,0 +1,61 @@
+{
+  "name": "@ops-pulse/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ops Pulse REST API: incidents, changes and KPIs over PostgreSQL.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "test:integration": "vitest run --project integration --no-file-parallelism",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "hygiene": "npm run hygiene:knip && npm run hygiene:dup",
+    "hygiene:knip": "knip --no-progress",
+    "hygiene:dup": "jscpd src --no-tips",
+    "hygiene:dup:update": "npm run hygiene:dup -- --update-baseline",
+    "db:migrate": "tsx --env-file-if-exists=.env src/scripts/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env src/scripts/seed.ts"
+  },
+  "dependencies": {
+    "bcrypt": "6.0.0",
+    "cors": "2.8.6",
+    "express": "5.3.0",
+    "express-rate-limit": "8.7.1",
+    "helmet": "8.3.0",
+    "jsonwebtoken": "9.0.3",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "pino-http": "11.0.0",
+    "swagger-ui-express": "5.0.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/bcrypt": "6.0.0",
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "@types/supertest": "7.2.1",
+    "@types/swagger-ui-express": "4.1.8",
+    "eslint": "10.12.0",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "eslint-plugin-unicorn": "77.0.0",
+    "globals": "17.13.0",
+    "jscpd": "5.4.1",
+    "knip": "6.41.0",
+    "supertest": "7.3.1",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "vitest": "5.0.3"
+  }
+}
