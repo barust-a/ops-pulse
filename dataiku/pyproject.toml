@@ -1,0 +1,70 @@
+[project]
+name = "ops-pulse-dataiku"
+version = "0.1.0"
+description = "Ops Pulse Dataiku project: SQL + Python recipes, scenario, API endpoint and a local runner."
+requires-python = ">=3.11"
+# Runtime pins: keep requirements.txt identical (`uv export --no-dev --no-hashes`).
+dependencies = [
+    "numpy==2.4.6",
+    "pandas==3.0.6",
+    "psycopg[binary]==3.3.6",
+    "pydantic==2.14.0",
+    # zoneinfo data for Europe/Paris even on minimal images without system tzdata.
+    "tzdata==2026.5",
+]
+
+[dependency-groups]
+dev = [
+    "import-linter==2.15",
+    "mypy==2.4.0",
+    "pandas-stubs==3.0.5.260914",
+    "pytest==9.1.1",
+    "ruff==0.17.0",
+]
+
+[tool.uv]
+# Not an installable package: DSS loads python-lib/ and the recipes from the project folder.
+package = false
+
+[tool.ruff]
+extend = "../docs/guides/python/ruff.toml"
+target-version = "py311"
+src = ["python-lib", "local_runner", "local_runner/shim", "."]
+
+[tool.ruff.lint.extend-per-file-ignores]
+# The base file's "**/tests/**" entry resolves against docs/guides/python/, so it is restated here.
+"tests/**" = ["PLR2004", "S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ops_kpis", "local_runner", "dataiku"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+enable_error_code = ["explicit-override", "ignore-without-code", "possibly-undefined", "deprecated"]
+mypy_path = ["python-lib", "local_runner/shim"]
+explicit_package_bases = true
+files = [
+    "python-lib",
+    "local_runner",
+    "tests",
+    "project/recipes/compute_daily_service_kpis.py",
+    "project/api-services/kpi_lookup/endpoints/latest_kpis.py",
+]
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib", "--strict-markers", "--strict-config", "-ra"]
+pythonpath = ["python-lib", "local_runner/shim", "."]
+testpaths = ["tests"]
+xfail_strict = true
+markers = ["integration: needs a PostgreSQL server reachable through DATABASE_URL"]
+
+[tool.importlinter]
+root_packages = ["ops_kpis", "local_runner"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The ops_kpis project library stays pure (pandas only, no database or DSS code)"
+type = "forbidden"
+source_modules = ["ops_kpis"]
+forbidden_modules = ["psycopg", "pydantic", "dataiku", "local_runner"]

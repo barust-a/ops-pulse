@@ -1,0 +1,8 @@
+{
+  "type": "sync",
+  "description": "Synchronisation incidents_raw -> incidents_prepared (same connection, in-database copy of the columns the flow needs).",
+  "tags": ["sync"],
+  "params": { "schemaMode": "STRICT_SYNC" },
+  "inputs": { "main": { "items": [{ "ref": "incidents_raw", "deps": [] }] } },
+  "outputs": { "main": { "items": [{ "ref": "incidents_prepared", "appendMode": false }] } }
+}

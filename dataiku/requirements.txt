@@ -1,0 +1,12 @@
+annotated-types==0.8.0
+numpy==2.4.6
+pandas==3.0.6
+psycopg==3.3.6
+psycopg-binary==3.3.6 ; implementation_name != 'pypy'
+pydantic==2.14.0
+pydantic-core==2.50.0
+python-dateutil==2.9.0.post0
+six==1.17.0
+typing-extensions==4.16.0
+typing-inspection==0.4.4
+tzdata==2026.5

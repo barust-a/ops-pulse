@@ -1,0 +1,19 @@
+{
+  "projectKey": "OPS_PULSE",
+  "name": "Ops Pulse",
+  "shortDesc": "Daily incident and change KPIs per service, with z-score anomaly detection, published to ops.daily_service_kpis for the Ops Pulse API.",
+  "tags": ["ops", "servicenow", "kpi", "anomaly-detection"],
+  "projectStatus": "Production",
+  "settings": {
+    "codeEnvs": {
+      "python": { "mode": "EXPLICIT_ENV", "envName": "py311_ops_pulse" }
+    },
+    "flowBuildSettings": { "mergeSqlPipelines": true }
+  },
+  "connections": {
+    "ops_postgres": {
+      "type": "PostgreSQL",
+      "description": "Ops Pulse PostgreSQL 16 database; the local runner maps it to DATABASE_URL."
+    }
+  }
+}

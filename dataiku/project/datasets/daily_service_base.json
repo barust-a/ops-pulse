@@ -1,0 +1,28 @@
+{
+  "type": "PostgreSQL",
+  "managed": true,
+  "description": "One row per calendar day and service (days without activity included), from kpi_from_date minus the baseline window to kpi_to_date.",
+  "tags": ["intermediate"],
+  "params": {
+    "connection": "ops_postgres",
+    "mode": "table",
+    "table": "daily_service_base"
+  },
+  "schema": {
+    "userModified": false,
+    "columns": [
+      { "name": "day", "type": "dateonly" },
+      { "name": "service", "type": "string" },
+      { "name": "incident_count", "type": "int" },
+      { "name": "resolved_count", "type": "int" },
+      { "name": "mttr_minutes", "type": "double" },
+      { "name": "p90_resolution_minutes", "type": "double" },
+      { "name": "sla_breach_count", "type": "int" },
+      { "name": "change_count", "type": "int" },
+      { "name": "failed_change_count", "type": "int" },
+      { "name": "baseline_mean_28d", "type": "double" },
+      { "name": "baseline_stddev_28d", "type": "double" }
+    ]
+  },
+  "partitioning": { "dimensions": [] }
+}

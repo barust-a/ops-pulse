@@ -1,0 +1,30 @@
+{
+  "type": "PostgreSQL",
+  "managed": false,
+  "description": "Flow output read by the Ops Pulse API (/kpis/summary, /kpis/daily). Rows are keyed by (day, service): rebuilding a window replaces exactly those days.",
+  "tags": ["output", "api"],
+  "params": {
+    "connection": "ops_postgres",
+    "mode": "table",
+    "schema": "ops",
+    "table": "daily_service_kpis"
+  },
+  "schema": {
+    "userModified": true,
+    "columns": [
+      { "name": "day", "type": "dateonly" },
+      { "name": "service", "type": "string" },
+      { "name": "incident_count", "type": "int" },
+      { "name": "resolved_count", "type": "int" },
+      { "name": "mttr_minutes", "type": "double" },
+      { "name": "p90_resolution_minutes", "type": "double" },
+      { "name": "sla_breach_rate", "type": "double" },
+      { "name": "change_count", "type": "int" },
+      { "name": "change_failure_rate", "type": "double" },
+      { "name": "incident_zscore", "type": "double" },
+      { "name": "is_anomaly", "type": "boolean" },
+      { "name": "computed_at", "type": "date" }
+    ]
+  },
+  "partitioning": { "dimensions": [] }
+}

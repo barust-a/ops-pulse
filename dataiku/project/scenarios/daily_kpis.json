@@ -1,0 +1,84 @@
+{
+  "type": "step_based",
+  "name": "Daily KPIs",
+  "active": true,
+  "description": "Every morning: refresh the 120-day KPI window, run the output checks, mail the on-call team if anything fails.",
+  "tags": ["production"],
+  "triggers": [
+    {
+      "id": "daily_0600_paris",
+      "type": "temporal",
+      "name": "Every day at 06:00 Europe/Paris",
+      "active": true,
+      "delay": 5,
+      "params": {
+        "frequency": "Daily",
+        "hour": 6,
+        "minute": 0,
+        "timezone": "Europe/Paris",
+        "startingFrom": "2026-10-10"
+      }
+    }
+  ],
+  "params": {
+    "steps": [
+      {
+        "id": "set_window",
+        "type": "set_project_vars",
+        "name": "Set the 120-day KPI window",
+        "runConditionType": "RUN_IF_STATUS_MATCH",
+        "runConditionStatuses": ["SUCCESS", "WARNING"],
+        "params": {
+          "evaluated": true,
+          "variables": {
+            "kpi_from_date": "toString(inc(now(), -119, 'day'), 'yyyy-MM-dd')",
+            "kpi_to_date": "toString(now(), 'yyyy-MM-dd')"
+          }
+        }
+      },
+      {
+        "id": "build_kpis",
+        "type": "build_flowitem",
+        "name": "Build daily_service_kpis and its upstream",
+        "runConditionType": "RUN_IF_STATUS_MATCH",
+        "runConditionStatuses": ["SUCCESS", "WARNING"],
+        "params": {
+          "jobType": "RECURSIVE_FORCED_BUILD",
+          "builds": [{ "type": "DATASET", "projectKey": "OPS_PULSE", "itemId": "daily_service_kpis" }]
+        }
+      },
+      {
+        "id": "check_kpis",
+        "type": "check_dataset",
+        "name": "Run the daily_service_kpis checks",
+        "runConditionType": "RUN_IF_STATUS_MATCH",
+        "runConditionStatuses": ["SUCCESS", "WARNING"],
+        "params": {
+          "checks": [{ "type": "DATASET", "projectKey": "OPS_PULSE", "itemId": "daily_service_kpis" }],
+          "failOnWarning": false
+        }
+      }
+    ]
+  },
+  "reporters": [
+    {
+      "id": "mail_on_failure",
+      "name": "Mail the on-call team on failure",
+      "active": true,
+      "phase": "END",
+      "runConditionEnabled": true,
+      "runCondition": "outcome == 'FAILED'",
+      "messaging": {
+        "type": "mail-scenario",
+        "configuration": {
+          "channelId": "ops_smtp",
+          "sender": "dss-noreply@ops-pulse.test",
+          "recipient": "ops-oncall@ops-pulse.test",
+          "subject": "[DSS] ${scenarioName} ${outcome}",
+          "messageTemplateName": "default",
+          "attachments": [{ "type": "LOG" }]
+        }
+      }
+    }
+  ]
+}

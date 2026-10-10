@@ -1,0 +1,15 @@
+{
+  "type": "sql_query",
+  "description": "Pushed-down aggregation: calendar x services, volumes, MTTR, p90, SLA breaches, change failures and the SQL-side 28-day baseline.",
+  "tags": ["sql", "push-down"],
+  "params": { "engineType": "SQL" },
+  "inputs": {
+    "main": {
+      "items": [
+        { "ref": "incidents_prepared", "deps": [] },
+        { "ref": "changes_raw", "deps": [] }
+      ]
+    }
+  },
+  "outputs": { "main": { "items": [{ "ref": "daily_service_base", "appendMode": false }] } }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "PostgreSQL",
+  "managed": false,
+  "description": "ServiceNow-shaped incidents, read in place from ops.incidents (owned by the API migrations).",
+  "tags": ["source", "servicenow"],
+  "params": {
+    "connection": "ops_postgres",
+    "mode": "table",
+    "schema": "ops",
+    "table": "incidents"
+  },
+  "schema": {
+    "userModified": false,
+    "columns": [
+      { "name": "id", "type": "bigint" },
+      { "name": "number", "type": "string" },
+      { "name": "short_description", "type": "string" },
+      { "name": "priority", "type": "smallint" },
+      { "name": "state", "type": "string" },
+      { "name": "category", "type": "string" },
+      { "name": "service", "type": "string" },
+      { "name": "assignment_group_id", "type": "int" },
+      { "name": "opened_at", "type": "date" },
+      { "name": "resolved_at", "type": "date" },
+      { "name": "sla_due_at", "type": "date" },
+      { "name": "caused_by_change", "type": "string" }
+    ]
+  },
+  "partitioning": { "dimensions": [] }
+}

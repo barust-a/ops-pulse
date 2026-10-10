@@ -1,0 +1,20 @@
+{
+  "id": "kpi_lookup",
+  "description": "Real-time lookup of a service's latest daily KPIs, for chat-ops bots and ServiceNow enrichment.",
+  "publicAccess": false,
+  "authRealm": { "queryKeys": [] },
+  "envSelection": { "envMode": "EXPLICIT_ENV", "envName": "py311_ops_pulse" },
+  "endpoints": [
+    {
+      "id": "latest_kpis",
+      "type": "STD_PYTHON_FUNCTION",
+      "userFunctionName": "latest_kpis",
+      "codeFile": "endpoints/latest_kpis.py",
+      "description": "POST {\"service\": \"payments\"} -> the most recent ops.daily_service_kpis row of that service.",
+      "testQueries": [
+        { "name": "payments", "q": { "service": "payments" } },
+        { "name": "unknown service", "q": { "service": "mainframe" } }
+      ]
+    }
+  ]
+}

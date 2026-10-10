@@ -1,0 +1,8 @@
+{
+  "type": "python",
+  "description": "Rates with zero-denominator guards, rolling z-score anomaly detection and output-schema conformance (logic in the ops_kpis project library).",
+  "tags": ["python", "statistics"],
+  "params": { "envSelection": { "envMode": "EXPLICIT_ENV", "envName": "py311_ops_pulse" } },
+  "inputs": { "main": { "items": [{ "ref": "daily_service_base", "deps": [] }] } },
+  "outputs": { "main": { "items": [{ "ref": "daily_service_kpis", "appendMode": false }] } }
+}

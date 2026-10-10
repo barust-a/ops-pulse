@@ -1,0 +1,9 @@
+{
+  "standard": {
+    "kpi_from_date": "2026-06-13",
+    "kpi_to_date": "2026-10-10",
+    "kpi_baseline_days": "28",
+    "kpi_baseline_min_days": "7"
+  },
+  "local": {}
+}

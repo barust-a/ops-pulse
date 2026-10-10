@@ -1,0 +1,20 @@
+{
+  "dataset": "daily_service_kpis",
+  "description": "Metrics computed after each build of daily_service_kpis and the checks the scenario runs on them. In DSS they live in the dataset's Status tab (metrics probes + checks); the local runner evaluates the same rules on the rows of the built window.",
+  "metrics": [
+    "records:COUNT_RECORDS",
+    "col_stats:COUNT_NULL:incident_count",
+    "col_stats:COUNT_NULL:sla_breach_rate",
+    "col_stats:COUNT_NULL:change_failure_rate",
+    "col_stats:COUNT_NULL:incident_zscore",
+    "col_stats:MAX:day"
+  ],
+  "checks": [
+    { "id": "row_count_positive", "type": "row_count_min", "min": 1, "severity": "ERROR" },
+    { "id": "incident_count_not_null", "type": "null_rate_max", "column": "incident_count", "max": 0.0, "severity": "ERROR" },
+    { "id": "sla_breach_rate_not_null", "type": "null_rate_max", "column": "sla_breach_rate", "max": 0.0, "severity": "ERROR" },
+    { "id": "change_failure_rate_not_null", "type": "null_rate_max", "column": "change_failure_rate", "max": 0.0, "severity": "ERROR" },
+    { "id": "zscore_coverage", "type": "null_rate_max", "column": "incident_zscore", "max": 0.5, "severity": "WARNING" },
+    { "id": "kpis_fresh", "type": "freshness_max_age_days", "column": "day", "max_age_days": 1, "severity": "WARNING" }
+  ]
+}

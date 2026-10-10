@@ -1,0 +1,29 @@
+{
+  "type": "PostgreSQL",
+  "managed": false,
+  "description": "ServiceNow-shaped change requests, read in place from ops.changes.",
+  "tags": ["source", "servicenow"],
+  "params": {
+    "connection": "ops_postgres",
+    "mode": "table",
+    "schema": "ops",
+    "table": "changes"
+  },
+  "schema": {
+    "userModified": false,
+    "columns": [
+      { "name": "id", "type": "bigint" },
+      { "name": "number", "type": "string" },
+      { "name": "short_description", "type": "string" },
+      { "name": "type", "type": "string" },
+      { "name": "risk", "type": "string" },
+      { "name": "state", "type": "string" },
+      { "name": "close_code", "type": "string" },
+      { "name": "service", "type": "string" },
+      { "name": "planned_start", "type": "date" },
+      { "name": "planned_end", "type": "date" },
+      { "name": "closed_at", "type": "date" }
+    ]
+  },
+  "partitioning": { "dimensions": [] }
+}
