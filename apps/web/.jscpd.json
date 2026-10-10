@@ -1,0 +1,16 @@
+{
+  "format": ["typescript", "tsx", "javascript", "jsx"],
+  "minTokens": 70,
+  "minLines": 8,
+  "ignore": [
+    "**/node_modules/**",
+    "**/*.d.ts",
+    "**/*.generated.*",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
+  "reporters": ["ai"],
+  "failOnEmpty": true,
+  "baseline": ".jscpd-baseline.json",
+  "failOnNewClones": 0
+}

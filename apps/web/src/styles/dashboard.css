@@ -1,0 +1,234 @@
+/* Page-level layouts: filter bar, KPI tiles, chart grid, list + side panel. */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.filter-bar .field {
+  width: 180px;
+}
+
+.search-form {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.search-form__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.search-form__row .field__control {
+  flex: 1;
+  min-width: 0;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow: hidden;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--kpi-color, var(--accent));
+}
+
+.kpi--good {
+  --kpi-color: var(--good);
+}
+
+.kpi--warning {
+  --kpi-color: var(--warning);
+}
+
+.kpi--critical {
+  --kpi-color: var(--critical);
+}
+
+.kpi__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.kpi__value {
+  font-size: clamp(1.35rem, 1.5vw + 0.4rem, 1.85rem);
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi--good .kpi__value,
+.kpi--warning .kpi__value,
+.kpi--critical .kpi__value {
+  color: var(--kpi-color);
+}
+
+.kpi__hint {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.card--wide {
+  grid-column: 1 / -1;
+}
+
+.overview-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.workspace--with-panel {
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+
+.workspace__list {
+  gap: var(--space-4);
+}
+
+.side-panel {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.side-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.side-panel__title {
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+.side-panel__title:focus {
+  box-shadow: none;
+}
+
+.side-panel__lead {
+  font-weight: 500;
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: 0.875rem;
+}
+
+.detail-list dt {
+  color: var(--text-muted);
+}
+
+.detail-list dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.panel-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.read-only-note {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace--with-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .filter-bar {
+    padding: var(--space-4);
+  }
+
+  .filter-bar .field {
+    width: 100%;
+  }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .table-wrap {
+    margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) 0;
+  }
+}
